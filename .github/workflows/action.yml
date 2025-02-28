@@ -33,6 +33,12 @@ jobs:
         with:
           ssh-private-key: |
             ${{ secrets.SSH_PRIVATE_KEY }}
+      
+      # Check the ssh key before running the Ansible playbook with 30s timeout
+      - name: Test ssh key
+        env:
+          ip: ${{ vars.target_ip }}
+        run: ssh ubuntu@${{env.ip}} -o StrictHostKeyChecking=no -o ConnectTimeout=30 echo "SSH key works"
 
       # Run the Ansible playbook to deploy your application stack
       - name: Run Ansible Playbook for Application Deployment
