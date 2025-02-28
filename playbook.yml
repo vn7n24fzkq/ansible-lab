@@ -7,4 +7,3 @@
       ansible.builtin.synchronize:
         src: "./test"
         dest: "./test"
-      delegate_to: localhost
