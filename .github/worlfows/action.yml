@@ -1,0 +1,39 @@
+name: Ansible lab workflows
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  ansible_rsync:
+    name: ansible_rsync
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+      # Install Ansible on the runner
+      - name: Install Ansible
+        run: sudo apt-get update && sudo apt-get install -y ansible && ansible --version
+
+      # Generate an inventory file using the instance IP output from the infra deployment
+      - name: Generate Ansible Inventory File
+        env:
+          ip: ${{ vars.target_ip }}
+        run: |
+          echo "[instance]" > inventory.ini
+          echo ${{env.ip}}
+          echo "instance ansible_host=${{env.ip}} ansible_user=ubuntu" >> inventory.ini
+          echo "[instance:vars]" >> inventory.ini
+          echo "ansible_ssh_common_args='-o StrictHostKeyChecking=no -o ConnectTimeout=30 -o ForwardAgent=yes -o UserKnownHostsFile=/dev/null'" >> inventory.ini
+          cat inventory.ini
+
+      - name: Start SSH agent
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: |
+            ${{ secrets.SSH_PRIVATE_KEY }}
+
+      # Run the Ansible playbook to deploy your application stack
+      - name: Run Ansible Playbook for Application Deployment
+        run: ansible-playbook -i inventory.ini playbook.yml -v

@@ -1,0 +1,10 @@
+---
+- name: ansible job
+  hosts: all
+  become: yes
+  tasks:
+    - name: rsync task
+      ansible.builtin.synchronize:
+        src: "./test"
+        dest: "./test"
+      delegate_to: localhost
